@@ -31,7 +31,7 @@ while (true)
 void Game()
 {
     person = new Sprite(14, 26);
-    zombies =new Sprite[] { new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) };
+    zombies = new Sprite[] { new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) };
     mines = new Sprite[] { new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) };
 
     while (true)
@@ -60,29 +60,29 @@ void Game()
             person.Left = person.Left + 1;
         }
 
-        if (Sprite.Occupy([.. zombies, .. mines], person))
+        if (person.Occupy([.. zombies, .. mines]))
         {
             GameOver();
             return;
         }
 
-        foreach (var zombie in zombies)
+        foreach (var zombie in zombies.Where(x=>x.IsAlive))
         {
             PrintScreen();
 
-            if (zombie.Top > person.Top && !Sprite.Occupy(zombies, new Sprite(zombie.Top - 1, zombie.Left)))
+            if (zombie.Top > person.Top && !new Sprite(zombie.Top - 1, zombie.Left).Occupy(zombies))
             {
                 zombie.Top = zombie.Top - 1;
             }
-            else if (zombie.Top < person.Top && !zombies.Any(x => x.Top == zombie.Top + 1 && x.Left == zombie.Left))
+            else if (zombie.Top < person.Top && !new Sprite(zombie.Top + 1, zombie.Left).Occupy(zombies))
             {
                 zombie.Top = zombie.Top + 1;
             }
-            else if (zombie.Left > person.Left && !zombies.Any(x => x.Top == zombie.Top && x.Left == zombie.Left - 1))
+            else if (zombie.Left > person.Left && !new Sprite(zombie.Top, zombie.Left - 1).Occupy(zombies))
             {
                 zombie.Left = zombie.Left - 1;
             }
-            else if (zombie.Left < person.Left && !zombies.Any(x => x.Top == zombie.Top && x.Left == zombie.Left + 1))
+            else if (zombie.Left < person.Left && !new Sprite(zombie.Top, zombie.Left + 1).Occupy(zombies))
             {
                 zombie.Left = zombie.Left + 1;
             }
@@ -103,9 +103,15 @@ void Game()
                 return;
             }
 
-            Thread.Sleep(150);
-        }
+            var pos = zombie.Find(mines);
+            if (pos > -1)
+            {
+                mines[pos].IsAlive = false;
+                zombie.IsAlive = false;
+            }
 
+            Thread.Sleep(50);
+        }
     }
 
     int RoleDice()
@@ -234,8 +240,6 @@ void GameOver()
     Console.ReadKey();
 }
 
-
-
 void PrintScreen()
 {
     Console.Clear();
@@ -245,14 +249,14 @@ void PrintScreen()
     Console.Write('p');
 
     Console.ForegroundColor = ConsoleColor.Green;
-    foreach (var zombie in zombies)
+    foreach (var zombie in zombies.Where(x => x.IsAlive))
     {
         Console.SetCursorPosition(zombie.Left, zombie.Top);
         Console.Write('z');
     }
 
-    Console.ForegroundColor = ConsoleColor.DarkGray;
-    foreach (var mine in mines)
+    Console.ForegroundColor = ConsoleColor.DarkRed;
+    foreach (var mine in mines.Where(x => x.IsAlive))
     {
         Console.SetCursorPosition(mine.Left, mine.Top);
         Console.Write('░');
@@ -270,6 +274,17 @@ class Sprite(int Top, int Left)
     public Sprite((int top, int left) coord) : this(coord.top, coord.left) { }
 
     public bool Occupy(Sprite s) => IsAlive && s.IsAlive && Top == s.Top && Left == s.Left;
+    public bool Occupy(IEnumerable<Sprite> ss) => Find(ss) > -1;
 
-    public static bool Occupy(IEnumerable<Sprite> ss, Sprite s) => ss.Any(s.Occupy);
+    public int Find(IEnumerable<Sprite> ss)
+    {
+        int i = 0;
+        foreach (var x in ss)
+        {
+            if (Occupy(x))
+                return i;
+            i++;
+        }
+        return -1;
+    }
 }
