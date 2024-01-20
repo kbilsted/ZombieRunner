@@ -16,9 +16,9 @@ Console.OutputEncoding = System.Text.Encoding.UTF8;
 //}
 //Console.ReadKey();
 
-Person person = new Person(14, 26);
-Zombie[] zombies = { Zombie.CreateRnd(), Zombie.CreateRnd(), Zombie.CreateRnd(), Zombie.CreateRnd(), Zombie.CreateRnd(), };
-Mine[] mines = { new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) };
+Sprite person = new Sprite(14, 26);
+Sprite[] zombies = { new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) };
+Sprite[] mines = { new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) };
 
 
 while (true)
@@ -30,9 +30,9 @@ while (true)
 
 void Game()
 {
-    person = new Person(14, 26);
-     zombies = new[]{ Zombie.CreateRnd(), Zombie.CreateRnd(), Zombie.CreateRnd(), Zombie.CreateRnd(), Zombie.CreateRnd(), };
-     mines = new Mine[] { new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) };
+    person = new Sprite(14, 26);
+    zombies =new Sprite[] { new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) };
+    mines = new Sprite[] { new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) };
 
     while (true)
     {
@@ -60,7 +60,7 @@ void Game()
             person.Left = person.Left + 1;
         }
 
-        if (Sprite.Occupy(zombies, person))
+        if (Sprite.Occupy([.. zombies, .. mines], person))
         {
             GameOver();
             return;
@@ -209,7 +209,7 @@ void TitleScreen()
 void GameOver()
 {
     Console.ForegroundColor = ConsoleColor.Red;
-    Console.SetCursorPosition(0,0);
+    Console.SetCursorPosition(0, 0);
     Console.WriteLine(@"
 
 
@@ -265,27 +265,11 @@ class Sprite(int Top, int Left)
 {
     public int Top { get; set; } = Top;
     public int Left { get; set; } = Left;
+    public bool IsAlive { get; set; } = true;
 
-    public Sprite((int top, int left) coord) : this(coord.top, coord.left)
-    {
-    }
+    public Sprite((int top, int left) coord) : this(coord.top, coord.left) { }
 
-    public bool Occupy(Sprite s)
-      => Top == s.Top && Left == s.Left;
+    public bool Occupy(Sprite s) => IsAlive && s.IsAlive && Top == s.Top && Left == s.Left;
 
-    public static bool Occupy(IEnumerable<Sprite> ss, Sprite s)
-      => ss.Any(x => x.Top == s.Top && x.Left == s.Left);
+    public static bool Occupy(IEnumerable<Sprite> ss, Sprite s) => ss.Any(s.Occupy);
 }
-
-class Zombie(int Top, int Left) : Sprite(Top, Left)
-{
-    public static bool AnyZombieOnField(Zombie[] zombies, int top, int left)
-        => zombies.Any(x => x.Top == top && x.Left == left);
-
-    public static Zombie CreateRnd()
-        => new Zombie(Random.Shared.Next(0, 19), Random.Shared.Next(0, 79));
-}
-
-class Mine((int top, int left) coord) : Sprite (coord);
-
-class Person(int Top, int Left) : Sprite(Top, Left);
