@@ -16,10 +16,9 @@ Console.OutputEncoding = System.Text.Encoding.UTF8;
 //}
 //Console.ReadKey();
 
-Sprite person = new Sprite(14, 26);
-Sprite[] zombies = { new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) };
-Sprite[] mines = { new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) };
-
+Sprite person;
+Sprite[] zombies;
+Sprite[] mines;
 
 while (true)
 {
@@ -31,8 +30,15 @@ while (true)
 void Game()
 {
     person = new Sprite(14, 26);
-    zombies = new Sprite[] { new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) };
-    mines = new Sprite[] { new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) };
+    zombies = [
+        new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) ,
+        new(Rnd()), new(Rnd()), new(Rnd()),
+    ];
+    mines = [
+        new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) ,
+        new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) ,
+        new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()), new(Rnd()) ,
+    ];
 
     while (true)
     {
@@ -74,22 +80,17 @@ void Game()
             {
                 zombie.Top = zombie.Top - 1;
             }
-            else if (zombie.Top < person.Top && !new Sprite(zombie.Top + 1, zombie.Left).Occupy(zombies))
+            if (zombie.Top < person.Top && !new Sprite(zombie.Top + 1, zombie.Left).Occupy(zombies))
             {
                 zombie.Top = zombie.Top + 1;
             }
-            else if (zombie.Left > person.Left && !new Sprite(zombie.Top, zombie.Left - 1).Occupy(zombies))
+            if (zombie.Left > person.Left && !new Sprite(zombie.Top, zombie.Left - 1).Occupy(zombies))
             {
                 zombie.Left = zombie.Left - 1;
             }
-            else if (zombie.Left < person.Left && !new Sprite(zombie.Top, zombie.Left + 1).Occupy(zombies))
+            if (zombie.Left < person.Left && !new Sprite(zombie.Top, zombie.Left + 1).Occupy(zombies))
             {
                 zombie.Left = zombie.Left + 1;
-            }
-            else
-            {
-                zombie.Left = zombie.Left + RoleDice();
-                zombie.Top = zombie.Top + RoleDice();
             }
 
             if (zombie.Occupy(person))
@@ -275,7 +276,6 @@ class Sprite(int Top, int Left)
 
     public bool Occupy(Sprite s) => IsAlive && s.IsAlive && Top == s.Top && Left == s.Left;
     public bool Occupy(IEnumerable<Sprite> ss) => Find(ss) > -1;
-
     public int Find(IEnumerable<Sprite> ss)
     {
         int i = 0;
